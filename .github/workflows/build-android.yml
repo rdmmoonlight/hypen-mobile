@@ -88,12 +88,14 @@ jobs:
             echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum diset. APK tidak akan tertanda dengan key tetap, update akan gagal (App not installed)."
             exit 1
           fi
+          # Buat folder direktori terlebih dahulu jika belum ada untuk menghindari error "No such file or directory"
+          mkdir -p apps/mobile
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > apps/mobile/hypen-release.keystore
 
       - name: Compile & Publish Release APK
         env:
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+          LASTFM_KEY: ${{ secrets.LASTFM_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -103,21 +105,13 @@ jobs:
           # Fresh restore
           dotnet restore apps/mobile/HypenMaui.csproj -p:TargetFramework=net10.0-android36.1
           
-          # Build Release dengan signing, TANPA dotnet publish.
-          # CATATAN: sudah dicoba single-RID (android-arm64) tapi duplikasi XAML source-gen
-          # (CS0102/CS0579/CS0111) tetap muncul. Artinya penyebabnya bukan multi-RID, tapi
-          # pipeline "dotnet publish" MAUI Android sendiri yang secara internal memicu ulang
-          # XAML source-generator (untuk optimisasi publish/trimming) di atas hasil generate
-          # dari tahap build, menghasilkan definisi dobel di file .sg.cs yang sama.
-          # Solusi: gunakan "dotnet build -c Release" saja. Selama AndroidKeyStore=true dan
-          # Configuration=Release, target SignAndroidPackage tetap jalan sebagai bagian dari
-          # build biasa dan tetap menghasilkan APK yang sudah ditandatangani (*-Signed.apk).
+          # Build Release dengan signing
           dotnet build apps/mobile/HypenMaui.csproj -c Release -f net10.0-android36.1 --no-restore \
             -p:RuntimeIdentifier=android-arm64 \
             -p:ApplicationDisplayVersion="${{ needs.prepare-version.outputs.version_name }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
-            -p:LASTFM_KEY="${LASTFM_API_KEY:-dummy_key}" \
-            -p:LASTFM_SECRET="${LASTFM_API_SECRET:-dummy_secret}" \
+            -p:LASTFM_KEY="${LASTFM_KEY:-dummy_key}" \
+            -p:LASTFM_SECRET="${LASTFM_SECRET:-dummy_secret}" \
             -p:GoogleClientId="${GOOGLE_CLIENT_ID:-dummy_client_id}" \
             -p:GoogleClientSecret="${GOOGLE_CLIENT_SECRET:-dummy_client_secret}" \
             -p:AndroidKeyStore=true \
@@ -137,7 +131,7 @@ jobs:
         run: |
           mkdir -p release-assets
           
-          # Cari APK di seluruh direktori output build/publish
+          # Cari APK di seluruh direktori output build
           APK_FILE=$(find apps/mobile/bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
           if [ -z "$APK_FILE" ]; then
             APK_FILE=$(find apps/mobile/bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
