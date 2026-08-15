@@ -14,6 +14,12 @@
 
             <!-- Definisi Key CardBackground untuk mengatasi StaticResource not found -->
             <Color x:Key="CardBackground">#1E1E1E</Color>
+
+            <Color x:Key="PrimaryBackground">#0b0914</Color>
+            <Color x:Key="CardBackground">#1E1E1E</Color>
+            <Color x:Key="AccentCyan">#00E5FF</Color>
+            <Color x:Key="AccentPink">#FF4081</Color>
+            <Color x:Key="AccentPurple">#8A5CF5</Color>
         </ResourceDictionary>
     </Application.Resources>
     
