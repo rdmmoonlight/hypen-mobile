@@ -18,6 +18,8 @@
 
 		<!-- Batas Minimum OS versi Android 9.0 (API 28) -->
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">28.0</SupportedOSPlatformVersion>
+		
+		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<NoWarn>$(NoWarn);NU1605;NU1107;NU1608;NU1603;NU1701</NoWarn>
 	</PropertyGroup>
