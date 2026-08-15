@@ -130,15 +130,36 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void OnSearchTextChanged(object sender, TextChangedEventArgs e) => FilterAndRenderSongs();
+    private void OnSearchTextChanged(object? sender, TextChangedEventArgs e) => FilterAndRenderSongs();
 
-    private async void OnRefreshTriggered(object sender, EventArgs e) => await LoadLibraryAsync();
+    private async void OnRefreshTriggered(object? sender, EventArgs e) => await LoadLibraryAsync();
 
     // Rescan penuh Library lokal
-    private async void OnRescanClicked(object sender, EventArgs e) => await LoadLibraryAsync();
+    private async void OnRescanClicked(object? sender, EventArgs e) => await LoadLibraryAsync();
+
+    // Handler untuk event OnFilterCategoryClicked dari MainPage.xaml
+    private void OnFilterCategoryClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn)
+        {
+            // Tambahkan logika pemfilteran kategori (opsional) atau panggil ulang penderender
+            FilterAndRenderSongs();
+        }
+    }
+
+    // Handler untuk event OnSongItemTapped (TapGestureRecognizer di item list)
+    private async void OnSongItemTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Parameter is SongModel song || (sender is BindableObject bindable && bindable.BindingContext is SongModel songContext && (song = songContext) != null))
+        {
+            var startIndex = DisplayedSongs.IndexOf(song);
+            _player.SetQueueAndPlay(DisplayedSongs, startIndex < 0 ? 0 : startIndex);
+            await Shell.Current.GoToAsync(nameof(NowPlayingPage));
+        }
+    }
 
     // Play lagu yang di-tap -> queue-nya adalah seluruh list yang sedang ditampilkan
-    private async void OnPlaySingleClicked(object sender, EventArgs e)
+    private async void OnPlaySingleClicked(object? sender, EventArgs e)
     {
         if (sender is Button btn && btn.CommandParameter is SongModel song)
         {
@@ -148,9 +169,9 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void OnMiniBarTapped(object sender, TappedEventArgs e) => await Shell.Current.GoToAsync(nameof(NowPlayingPage));
+    private async void OnMiniBarTapped(object? sender, TappedEventArgs e) => await Shell.Current.GoToAsync(nameof(NowPlayingPage));
 
-    private void OnMiniPlayPauseClicked(object sender, EventArgs e) => _player.TogglePlayPause();
+    private void OnMiniPlayPauseClicked(object? sender, EventArgs e) => _player.TogglePlayPause();
 
-    private void OnMiniNextClicked(object sender, EventArgs e) => _player.Next();
+    private void OnMiniNextClicked(object? sender, EventArgs e) => _player.Next();
 }
