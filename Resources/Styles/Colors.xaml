@@ -12,6 +12,8 @@
     <!-- Custom Key Anda -->
     <Color x:Key="PrimaryBackground">#F8F9FA</Color>
 
+    <Color x:Key="CardBackground">#1E1E1E</Color>
+
     <!-- Neutral Colors -->
     <Color x:Key="White">#FFFFFF</Color>
     <Color x:Key="Black">#000000</Color>
