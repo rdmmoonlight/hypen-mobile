@@ -66,11 +66,10 @@ jobs:
         run: |
           set -e
           # Clean entire solution
-          dotnet clean apps/mobile/HypenMaui.csproj -c Release --verbosity minimal || true
+          dotnet clean HypenMaui.csproj -c Release --verbosity minimal || true
           
           # Remove all obj and bin directories
-          rm -rf apps/mobile/bin
-          rm -rf apps/mobile/obj
+          rm -rf bin obj
           
           # Clear NuGet cache for MAUI packages
           rm -rf ~/.nuget/packages/microsoft.maui* || true
@@ -88,9 +87,7 @@ jobs:
             echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum diset. APK tidak akan tertanda dengan key tetap, update akan gagal (App not installed)."
             exit 1
           fi
-          # Buat folder direktori terlebih dahulu jika belum ada untuk menghindari error "No such file or directory"
-          mkdir -p apps/mobile
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > apps/mobile/hypen-release.keystore
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > hypen-release.keystore
 
       - name: Compile & Publish Release APK
         env:
@@ -103,10 +100,10 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           # Fresh restore
-          dotnet restore apps/mobile/HypenMaui.csproj -p:TargetFramework=net10.0-android36.1
+          dotnet restore HypenMaui.csproj -p:TargetFramework=net10.0-android36.1
           
           # Build Release dengan signing
-          dotnet build apps/mobile/HypenMaui.csproj -c Release -f net10.0-android36.1 --no-restore \
+          dotnet build HypenMaui.csproj -c Release -f net10.0-android36.1 --no-restore \
             -p:RuntimeIdentifier=android-arm64 \
             -p:ApplicationDisplayVersion="${{ needs.prepare-version.outputs.version_name }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
@@ -115,7 +112,7 @@ jobs:
             -p:GoogleClientId="${GOOGLE_CLIENT_ID:-dummy_client_id}" \
             -p:GoogleClientSecret="${GOOGLE_CLIENT_SECRET:-dummy_client_secret}" \
             -p:AndroidKeyStore=true \
-            -p:AndroidSigningKeyStore="$(pwd)/apps/mobile/hypen-release.keystore" \
+            -p:AndroidSigningKeyStore="$(pwd)/hypen-release.keystore" \
             -p:AndroidSigningKeyAlias="${ANDROID_KEY_ALIAS}" \
             -p:AndroidSigningStorePass="${ANDROID_KEYSTORE_PASSWORD}" \
             -p:AndroidSigningKeyPass="${ANDROID_KEY_PASSWORD}"
@@ -123,8 +120,8 @@ jobs:
       - name: Clean Up Keystore File
         if: always()
         run: |
-          if [ -f "apps/mobile/hypen-release.keystore" ]; then
-            rm -f apps/mobile/hypen-release.keystore
+          if [ -f "hypen-release.keystore" ]; then
+            rm -f hypen-release.keystore
           fi
 
       - name: Validate APK & Prepare Final Release Asset
@@ -132,15 +129,15 @@ jobs:
           mkdir -p release-assets
           
           # Cari APK di seluruh direktori output build
-          APK_FILE=$(find apps/mobile/bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
+          APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
           if [ -z "$APK_FILE" ]; then
-            APK_FILE=$(find apps/mobile/bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
+            APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
           fi
 
           if [ -z "$APK_FILE" ]; then
             echo "::error::File APK tidak ditemukan!"
             echo "--- Struktur folder output build ---"
-            ls -R apps/mobile/bin/Release/net10.0-android* || true
+            ls -R bin/Release/net10.0-android* || true
             exit 1
           fi
 
