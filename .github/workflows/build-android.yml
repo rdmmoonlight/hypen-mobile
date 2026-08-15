@@ -3,9 +3,6 @@ name: Hypen Android CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'apps/mobile/**'
-      - '.github/workflows/**'
 
 concurrency:
   group: android-ci-cd-${{ github.ref }}
