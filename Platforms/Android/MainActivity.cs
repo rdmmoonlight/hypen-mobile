@@ -27,29 +27,5 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        RegisterNotificationCloseAction();
-    }
-
-    private void RegisterNotificationCloseAction()
-    {
-        var stopIntent = new Intent(this, typeof(MediaNotificationReceiver));
-        stopIntent.SetAction("ACTION_FORCE_CLOSE");
-
-        _ = PendingIntent.GetBroadcast(
-            this,
-            0,
-            stopIntent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-    }
-
-    protected override void OnNewIntent(Intent? intent)
-    {
-        base.OnNewIntent(intent);
-
-        if (intent?.Action == "ACTION_FORCE_CLOSE")
-        {
-            Services.PlayerService.Current.Pause();
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
-        }
     }
 }
