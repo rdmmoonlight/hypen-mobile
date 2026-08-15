@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Maui.Views;
 using HypenMaui.Models;
+using HypenMaui.Platforms.Android;
 
 namespace HypenMaui.Services;
 
@@ -46,7 +47,15 @@ public partial class PlayerService : INotifyPropertyChanged
     public bool IsPlaying
     {
         get => _isPlaying;
-        private set { _isPlaying = value; OnChanged(); }
+        private set
+        {
+            _isPlaying = value;
+            OnChanged();
+            NowPlayingNotificationManager.Update(
+                value,
+                CurrentSong?.Title ?? string.Empty,
+                CurrentSong?.Artist ?? string.Empty);
+        }
     }
 
     private TimeSpan _position;
