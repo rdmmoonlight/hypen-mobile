@@ -11,6 +11,9 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Definisi Key CardBackground untuk mengatasi StaticResource not found -->
+            <Color x:Key="CardBackground">#1E1E1E</Color>
         </ResourceDictionary>
     </Application.Resources>
     
