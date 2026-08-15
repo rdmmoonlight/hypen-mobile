@@ -22,8 +22,9 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
-            // Perbaikan CS7036: Tambahkan parameter `true` untuk mengaktifkan Android Foreground Service
-            .UseMauiCommunityToolkitMediaElement(true)
+            // Foreground service bawaan library dinonaktifkan: notifikasi Now Playing
+            // sekarang ditangani penuh oleh NowPlayingNotificationManager (custom).
+            .UseMauiCommunityToolkitMediaElement(false)
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
