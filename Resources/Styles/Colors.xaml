@@ -9,10 +9,12 @@
     <Color x:Key="Secondary">#DFD8F7</Color>
     <Color x:Key="Tertiary">#2B0B98</Color>
     
-    <!-- Custom Key Anda -->
-    <Color x:Key="PrimaryBackground">#F8F9FA</Color>
-
+    <!-- Custom Application Theme Colors -->
+    <Color x:Key="PrimaryBackground">#0B0914</Color>
     <Color x:Key="CardBackground">#1E1E1E</Color>
+    <Color x:Key="AccentCyan">#00E5FF</Color>
+    <Color x:Key="AccentPink">#FF4081</Color>
+    <Color x:Key="AccentPurple">#8A5CF5</Color>
 
     <!-- Neutral Colors -->
     <Color x:Key="White">#FFFFFF</Color>
@@ -22,4 +24,5 @@
 
     <!-- SolidColorBrushes -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="AccentCyanBrush" Color="{StaticResource AccentCyan}" />
 </ResourceDictionary>
