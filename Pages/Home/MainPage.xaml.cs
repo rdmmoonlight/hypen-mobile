@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using HypenMaui.Models;
+using HypenMaui.Pages.Metadata;
 using HypenMaui.Pages.NowPlaying;
 using HypenMaui.Services;
 using Microsoft.Maui.Graphics;
@@ -14,6 +15,7 @@ public partial class MainPage : ContentPage
 
     private readonly PlayerService _player = PlayerService.Current;
     private string? _selectedFolder;
+    private bool _isSelectMode;
 
     public MainPage()
     {
@@ -27,6 +29,18 @@ public partial class MainPage : ContentPage
         RefreshMiniBar();
 
         _ = LoadLibraryAsync();
+
+        SongsCollectionView.SelectionChanged += OnSongsSelectionChanged;
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (LibraryChangeSignal.Pending)
+        {
+            LibraryChangeSignal.Pending = false;
+            _ = LoadLibraryAsync();
+        }
     }
 
     private void OnPlayerStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -99,6 +113,7 @@ public partial class MainPage : ContentPage
                 Cover = s.AlbumArtUri,
                 AudioUrl = s.ContentUri,
                 DurationMs = s.DurationMs,
+                FilePath = s.FilePath,
                 FolderPath = Path.GetDirectoryName(s.FilePath) ?? "",
                 IsFavorite = _player.IsFavorite(s.Id)
             }).ToList();
@@ -202,6 +217,8 @@ public partial class MainPage : ContentPage
     // Handler untuk event OnSongItemTapped (TapGestureRecognizer di item list)
     private async void OnSongItemTapped(object? sender, TappedEventArgs e)
     {
+        if (_isSelectMode) return; // biarkan CollectionView yang menangani seleksi
+
         if (e.Parameter is SongModel song || (sender is BindableObject bindable && bindable.BindingContext is SongModel songContext && (song = songContext) != null))
         {
             var startIndex = DisplayedSongs.IndexOf(song);
@@ -213,12 +230,66 @@ public partial class MainPage : ContentPage
     // Play lagu yang di-tap -> queue-nya adalah seluruh list yang sedang ditampilkan
     private async void OnPlaySingleClicked(object? sender, EventArgs e)
     {
+        if (_isSelectMode) return;
+
         if (sender is Button btn && btn.CommandParameter is SongModel song)
         {
             var startIndex = DisplayedSongs.IndexOf(song);
             _player.SetQueueAndPlay(DisplayedSongs, startIndex < 0 ? 0 : startIndex);
             await Shell.Current.GoToAsync(nameof(NowPlayingPage));
         }
+    }
+
+    // Buka Edit Metadata untuk satu lagu
+    private async void OnEditSingleClicked(object? sender, EventArgs e)
+    {
+        if (_isSelectMode) return;
+
+        if (sender is Button btn && btn.CommandParameter is SongModel song)
+        {
+            await Shell.Current.GoToAsync(nameof(EditMetadataPage), new Dictionary<string, object>
+            {
+                { "Songs", new List<SongModel> { song } }
+            });
+        }
+    }
+
+    // Toggle mode Pilih (multi-select) untuk edit metadata batch
+    private void OnToggleSelectModeClicked(object? sender, EventArgs e)
+    {
+        _isSelectMode = !_isSelectMode;
+
+        SongsCollectionView.SelectionMode = _isSelectMode ? SelectionMode.Multiple : SelectionMode.None;
+        SelectModeBtn.Text = _isSelectMode ? "Batal" : "Pilih";
+        SelectModeBtn.BackgroundColor = _isSelectMode ? Color.FromArgb("#8A5CF5") : Color.FromArgb("#1E1E1E");
+        SelectionBar.IsVisible = _isSelectMode;
+
+        if (!_isSelectMode)
+        {
+            SongsCollectionView.SelectedItems?.Clear();
+        }
+    }
+
+    private void OnSongsSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        int count = SongsCollectionView.SelectedItems?.Count ?? 0;
+        SelectionCountLabel.Text = $"{count} lagu dipilih";
+    }
+
+    // Buka Edit Metadata untuk semua lagu yang sedang dipilih
+    private async void OnBatchEditClicked(object? sender, EventArgs e)
+    {
+        var selected = SongsCollectionView.SelectedItems?.OfType<SongModel>().ToList() ?? [];
+        if (selected.Count == 0)
+        {
+            await DisplayAlert("Belum Ada Lagu", "Pilih minimal satu lagu dulu.", "OK");
+            return;
+        }
+
+        await Shell.Current.GoToAsync(nameof(EditMetadataPage), new Dictionary<string, object>
+        {
+            { "Songs", selected }
+        });
     }
 
     private async void OnMiniBarTapped(object? sender, TappedEventArgs e) => await Shell.Current.GoToAsync(nameof(NowPlayingPage));

@@ -7,19 +7,20 @@
              Title="Library"
              BackgroundColor="{StaticResource PrimaryBackground}">
 
-    <Grid RowDefinitions="Auto, Auto, Auto, *, Auto">
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, *, Auto">
 
         <!-- Audio Engine (hidden, persisten selama app hidup) -->
         <toolkit:MediaElement x:Name="AudioPlayer" ShouldAutoPlay="False" ShouldShowPlaybackControls="False" IsVisible="False" HeightRequest="0" WidthRequest="0" />
 
         <!-- Header Summary -->
         <Border Grid.Row="0" Margin="16,12" Padding="16" BackgroundColor="{StaticResource CardBackground}" StrokeShape="RoundRectangle 12" StrokeThickness="0">
-            <Grid ColumnDefinitions="*, Auto">
+            <Grid ColumnDefinitions="*, Auto, Auto">
                 <VerticalStackLayout Grid.Column="0" Spacing="4">
                     <Label Text="LOCAL LIBRARY" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource AccentCyan}" CharacterSpacing="1.5" />
                     <Label x:Name="TotalTracksLabel" Text="0 Tracks" FontSize="18" FontAttributes="Bold" TextColor="White" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" Text="Rescan" Clicked="OnRescanClicked" HeightRequest="36" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" FontSize="12" />
+                <Button x:Name="SelectModeBtn" Grid.Column="1" Text="Pilih" Clicked="OnToggleSelectModeClicked" HeightRequest="36" BackgroundColor="{StaticResource CardBackground}" TextColor="White" FontSize="12" Margin="0,0,8,0" />
+                <Button Grid.Column="2" Text="Rescan" Clicked="OnRescanClicked" HeightRequest="36" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" FontSize="12" />
             </Grid>
         </Border>
 
@@ -35,8 +36,16 @@
             </HorizontalStackLayout>
         </ScrollView>
 
+        <!-- Selection Action Bar (muncul saat mode Pilih aktif) -->
+        <Border Grid.Row="3" x:Name="SelectionBar" IsVisible="False" Margin="16,0,16,12" Padding="12,8" BackgroundColor="{StaticResource CardBackground}" StrokeShape="RoundRectangle 10" StrokeThickness="0">
+            <Grid ColumnDefinitions="*, Auto">
+                <Label x:Name="SelectionCountLabel" Grid.Column="0" Text="0 lagu dipilih" TextColor="White" FontSize="13" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="Edit Metadata" Clicked="OnBatchEditClicked" HeightRequest="34" CornerRadius="17" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" FontSize="12" />
+            </Grid>
+        </Border>
+
         <!-- Main Content -->
-        <RefreshView Grid.Row="3" x:Name="RefreshControl" Refreshing="OnRefreshTriggered">
+        <RefreshView Grid.Row="4" x:Name="RefreshControl" Refreshing="OnRefreshTriggered">
             <Grid>
                 <Label x:Name="StatusLabel" HorizontalOptions="Center" VerticalOptions="Center" TextColor="#888888" FontSize="14" HorizontalTextAlignment="Center" Margin="24" />
                 
@@ -44,6 +53,17 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModel">
                             <Grid ColumnDefinitions="56, *, Auto" Padding="16,8" ColumnSpacing="12">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup Name="CommonStates">
+                                        <VisualState Name="Normal" />
+                                        <VisualState Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="#251E38" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnSongItemTapped" CommandParameter="{Binding .}" />
                                 </Grid.GestureRecognizers>
@@ -59,7 +79,10 @@
 
                                 <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End" Spacing="4">
                                     <Label Text="{Binding DurationText}" TextColor="#888888" FontSize="12" HorizontalOptions="Center" />
-                                    <Button Text="▶" Clicked="OnPlaySingleClicked" CommandParameter="{Binding .}" WidthRequest="34" HeightRequest="34" CornerRadius="17" BackgroundColor="{StaticResource CardBackground}" TextColor="{StaticResource AccentCyan}" FontSize="11" />
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Button Text="✏️" Clicked="OnEditSingleClicked" CommandParameter="{Binding .}" WidthRequest="30" HeightRequest="30" CornerRadius="15" BackgroundColor="{StaticResource CardBackground}" TextColor="White" FontSize="12" Padding="0" />
+                                        <Button Text="▶" Clicked="OnPlaySingleClicked" CommandParameter="{Binding .}" WidthRequest="34" HeightRequest="34" CornerRadius="17" BackgroundColor="{StaticResource CardBackground}" TextColor="{StaticResource AccentCyan}" FontSize="11" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Grid>
                         </DataTemplate>
@@ -69,7 +92,7 @@
         </RefreshView>
 
         <!-- Mini Player Bar -->
-        <Border Grid.Row="4" x:Name="MiniPlayerBar" IsVisible="False" BackgroundColor="{StaticResource CardBackground}" Stroke="#221E38" StrokeShape="Rectangle" Padding="12,8">
+        <Border Grid.Row="5" x:Name="MiniPlayerBar" IsVisible="False" BackgroundColor="{StaticResource CardBackground}" Stroke="#221E38" StrokeShape="Rectangle" Padding="12,8">
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnMiniBarTapped" />
             </Border.GestureRecognizers>

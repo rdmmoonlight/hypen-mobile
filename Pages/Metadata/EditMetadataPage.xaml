@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HypenMaui.Pages.Metadata.EditMetadataPage"
+             Title="Edit Metadata"
+             BackgroundColor="#0B0914">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,16" Spacing="16">
+
+            <Label x:Name="HeaderLabel" Text="Edit Metadata" FontSize="18" FontAttributes="Bold" TextColor="White" />
+            <Label x:Name="SubHeaderLabel" Text="" FontSize="13" TextColor="#AAAAAA" />
+
+            <VerticalStackLayout x:Name="TitleFieldGroup" Spacing="4">
+                <Label Text="Judul Lagu" FontSize="12" TextColor="#8A5CF5" FontAttributes="Bold" />
+                <Entry x:Name="TitleEntry" Placeholder="Judul lagu" PlaceholderColor="#666666" TextColor="White" BackgroundColor="#1E1E1E" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Artis" FontSize="12" TextColor="#8A5CF5" FontAttributes="Bold" />
+                <Entry x:Name="ArtistEntry" Placeholder="Nama artis" PlaceholderColor="#666666" TextColor="White" BackgroundColor="#1E1E1E" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Album" FontSize="12" TextColor="#8A5CF5" FontAttributes="Bold" />
+                <Entry x:Name="AlbumEntry" Placeholder="Nama album" PlaceholderColor="#666666" TextColor="White" BackgroundColor="#1E1E1E" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Tahun" FontSize="12" TextColor="#8A5CF5" FontAttributes="Bold" />
+                <Entry x:Name="YearEntry" Placeholder="Contoh: 2023" PlaceholderColor="#666666" TextColor="White" BackgroundColor="#1E1E1E" Keyboard="Numeric" />
+            </VerticalStackLayout>
+
+            <Label x:Name="BatchHintLabel" Text="Mode Batch: kosongkan field yang tidak ingin diubah — hanya field yang diisi yang akan diterapkan ke semua lagu terpilih." FontSize="11" TextColor="#777777" IsVisible="False" />
+
+            <VerticalStackLayout x:Name="BatchListGroup" Spacing="4" IsVisible="False">
+                <Label Text="Lagu Terpilih" FontSize="12" TextColor="#8A5CF5" FontAttributes="Bold" />
+                <Label x:Name="BatchSongListLabel" Text="" FontSize="12" TextColor="#BBBBBB" />
+            </VerticalStackLayout>
+
+            <Button x:Name="AutoFillButton" Text="🔍 Lengkapi Otomatis dari MusicBrainz" Clicked="OnAutoFillClicked" BackgroundColor="#221E38" TextColor="#00E5FF" FontSize="13" HeightRequest="46" CornerRadius="10" />
+
+            <Label x:Name="StatusLabel" Text="" FontSize="12" TextColor="#00E5FF" HorizontalTextAlignment="Center" />
+
+            <Button x:Name="SaveButton" Text="Simpan Perubahan" Clicked="OnSaveClicked" BackgroundColor="#8A5CF5" TextColor="White" FontSize="14" FontAttributes="Bold" HeightRequest="48" CornerRadius="10" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
