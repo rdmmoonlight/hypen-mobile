@@ -8,19 +8,22 @@ namespace HypenMaui.Pages.Metadata;
 ///   - Satu lagu: semua field (Judul, Artis, Album, Tahun) langsung ditulis ke file.
 ///   - Banyak lagu (batch): Judul disembunyikan (tiap lagu unik), field lain yang diisi
 ///     diterapkan ke SEMUA lagu terpilih; field kosong berarti "jangan diubah".
-/// Menerima daftar lagu lewat parameter navigasi Shell "Songs" (lihat MainPage).
+///
+/// Menerima daftar lagu lewat parameter navigasi Shell "Songs" (lihat MainPage). Sengaja
+/// pakai IQueryAttributable (bukan [QueryProperty]) karena [QueryProperty] internalnya
+/// selalu memanggil Convert.ChangeType — yang crash (InvalidCastException: IConvertible)
+/// kalau nilainya objek kompleks seperti List&lt;SongModel&gt; alih-alih tipe primitif.
 /// </summary>
-[QueryProperty(nameof(SongsParam), "Songs")]
-public partial class EditMetadataPage : ContentPage
+public partial class EditMetadataPage : ContentPage, IQueryAttributable
 {
     private List<SongModel> _songs = [];
     private readonly MusicBrainzService _musicBrainz = new();
 
-    public object SongsParam
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        set
+        if (query.TryGetValue("Songs", out var value) && value is List<SongModel> songs)
         {
-            if (value is List<SongModel> songs) _songs = songs;
+            _songs = songs;
             LoadForm();
         }
     }
