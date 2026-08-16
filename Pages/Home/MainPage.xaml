@@ -16,12 +16,8 @@
         <Border Grid.Row="0" Margin="16,12" Padding="16" BackgroundColor="{StaticResource CardBackground}" StrokeShape="RoundRectangle 12" StrokeThickness="0">
             <Grid ColumnDefinitions="*, Auto">
                 <VerticalStackLayout Grid.Column="0" Spacing="4">
-                    <Label Text="LOCAL AUDIOPHILE LIBRARY" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource AccentCyan}" CharacterSpacing="1.5" />
-                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                        <Label x:Name="TotalTracksLabel" Text="0 Tracks" FontSize="18" FontAttributes="Bold" TextColor="White" />
-                        <Label Text="•" TextColor="#666666" VerticalOptions="Center" />
-                        <Label x:Name="HiResCountLabel" Text="0 Hi-Res" FontSize="13" TextColor="{StaticResource AccentPink}" VerticalOptions="Center" FontAttributes="Bold" />
-                    </HorizontalStackLayout>
+                    <Label Text="LOCAL LIBRARY" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource AccentCyan}" CharacterSpacing="1.5" />
+                    <Label x:Name="TotalTracksLabel" Text="0 Tracks" FontSize="18" FontAttributes="Bold" TextColor="White" />
                 </VerticalStackLayout>
                 <Button Grid.Column="1" Text="Rescan" Clicked="OnRescanClicked" HeightRequest="36" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" FontSize="12" />
             </Grid>
@@ -34,7 +30,6 @@
         <ScrollView Grid.Row="2" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="16,0,16,12">
             <HorizontalStackLayout Spacing="8">
                 <Button x:Name="FilterAllBtn" Text="All Tracks" Clicked="OnFilterCategoryClicked" CommandParameter="ALL" HeightRequest="32" CornerRadius="16" BackgroundColor="{StaticResource AccentCyan}" TextColor="Black" FontSize="12" FontAttributes="Bold" />
-                <Button x:Name="FilterHiResBtn" Text="💛 Hi-Res / Lossless" Clicked="OnFilterCategoryClicked" CommandParameter="HIRES" HeightRequest="32" CornerRadius="16" BackgroundColor="{StaticResource CardBackground}" TextColor="White" FontSize="12" />
             </HorizontalStackLayout>
         </ScrollView>
 
@@ -58,18 +53,12 @@
                                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
                                     <Label Text="{Binding Title}" LineBreakMode="TailTruncation" TextColor="White" FontSize="15" FontAttributes="Bold" />
                                     <Label Text="{Binding Artist}" LineBreakMode="TailTruncation" TextColor="#BBBBBB" FontSize="13" />
-                                    
-                                    <HorizontalStackLayout Spacing="6" Margin="0,2,0,0">
-                                        <Border BackgroundColor="#201428" Stroke="{StaticResource AccentPurple}" StrokeThickness="0.5" Padding="4,1" StrokeShape="RoundRectangle 4">
-                                            <Label Text="24-bit / 96kHz FLAC" FontSize="9" TextColor="{StaticResource AccentCyan}" FontAttributes="Bold" />
-                                        </Border>
-                                        <Label Text="{Binding Album}" LineBreakMode="TailTruncation" TextColor="#666666" FontSize="11" VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
 
-                                <HorizontalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="4">
-                                    <Button Text="▶" Clicked="OnPlaySingleClicked" CommandParameter="{Binding .}" WidthRequest="38" HeightRequest="38" CornerRadius="19" BackgroundColor="{StaticResource CardBackground}" TextColor="{StaticResource AccentCyan}" FontSize="12" />
-                                </HorizontalStackLayout>
+                                <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End" Spacing="4">
+                                    <Label Text="{Binding DurationText}" TextColor="#888888" FontSize="12" HorizontalOptions="Center" />
+                                    <Button Text="▶" Clicked="OnPlaySingleClicked" CommandParameter="{Binding .}" WidthRequest="34" HeightRequest="34" CornerRadius="17" BackgroundColor="{StaticResource CardBackground}" TextColor="{StaticResource AccentCyan}" FontSize="11" />
+                                </VerticalStackLayout>
                             </Grid>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>

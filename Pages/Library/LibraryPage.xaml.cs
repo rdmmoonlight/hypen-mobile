@@ -121,10 +121,6 @@ public partial class LibraryPage : ContentPage
     private void UpdateHeaderStats()
     {
         TotalTracksLabel.Text = $"{_allSongs.Count} Tracks";
-        // Simulasi atau kalkulasi jumlah trek berkualitas Lossless/Hi-Res
-        int hiResCount = _allSongs.Count(s => s.AudioUrl?.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) == true ||
-                                              s.AudioUrl?.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) == true);
-        HiResCountLabel.Text = $"{hiResCount} Hi-Res/Lossless";
     }
 
     private void FilterAndRenderSongs()
@@ -139,14 +135,7 @@ public partial class LibraryPage : ContentPage
                                  song.Artist.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                                  song.Album.Contains(query, StringComparison.CurrentCultureIgnoreCase);
 
-            bool matchesCategory = _currentCategoryFilter switch
-            {
-                "HIRES" => song.AudioUrl?.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) == true ||
-                           song.AudioUrl?.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) == true,
-                _ => true
-            };
-
-            return matchesSearch && matchesCategory;
+            return matchesSearch;
         });
 
         foreach (var song in filtered)
@@ -164,9 +153,6 @@ public partial class LibraryPage : ContentPage
             // Update visual state tombol filter
             FilterAllBtn.BackgroundColor = category == "ALL" ? Color.FromArgb("#00E5FF") : Color.FromArgb("#2A2A2A");
             FilterAllBtn.TextColor = category == "ALL" ? Colors.Black : Colors.White;
-
-            FilterHiResBtn.BackgroundColor = category == "HIRES" ? Color.FromArgb("#00E5FF") : Color.FromArgb("#2A2A2A");
-            FilterHiResBtn.TextColor = category == "HIRES" ? Colors.Black : Colors.White;
 
             FilterAndRenderSongs();
         }

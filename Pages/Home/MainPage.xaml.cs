@@ -101,6 +101,7 @@ public partial class MainPage : ContentPage
                 IsFavorite = _player.IsFavorite(s.Id)
             }).ToList();
 
+            UpdateHeaderStats();
             FilterAndRenderSongs();
             StatusLabel.Text = _allSongs.Count == 0 ? "Tidak ada file musik ditemukan di Library." : "";
         }
@@ -112,6 +113,11 @@ public partial class MainPage : ContentPage
         {
             RefreshControl.IsRefreshing = false;
         }
+    }
+
+    private void UpdateHeaderStats()
+    {
+        TotalTracksLabel.Text = $"{_allSongs.Count} Tracks";
     }
 
     private void FilterAndRenderSongs()
@@ -138,14 +144,7 @@ public partial class MainPage : ContentPage
     private async void OnRescanClicked(object? sender, EventArgs e) => await LoadLibraryAsync();
 
     // Handler untuk event OnFilterCategoryClicked dari MainPage.xaml
-    private void OnFilterCategoryClicked(object? sender, EventArgs e)
-    {
-        if (sender is Button btn)
-        {
-            // Tambahkan logika pemfilteran kategori (opsional) atau panggil ulang penderender
-            FilterAndRenderSongs();
-        }
-    }
+    private void OnFilterCategoryClicked(object? sender, EventArgs e) => FilterAndRenderSongs();
 
     // Handler untuk event OnSongItemTapped (TapGestureRecognizer di item list)
     private async void OnSongItemTapped(object? sender, TappedEventArgs e)

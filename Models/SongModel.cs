@@ -15,6 +15,9 @@ public class SongModel
     public string AudioUrl { get; set; } = "";
     public long DurationMs { get; set; }
 
+    /// <summary>Durasi dalam format mm:ss untuk ditampilkan di daftar Library.</summary>
+    public string DurationText => TimeSpan.FromMilliseconds(DurationMs < 0 ? 0 : DurationMs).ToString(DurationMs >= 3600000 ? @"h\:mm\:ss" : @"mm\:ss");
+
     // Metadata audiophile — diisi lazy (saat lagu mulai diputar), bukan saat scan awal,
     // supaya scan library tetap cepat untuk koleksi besar.
     public string Format { get; set; } = "";

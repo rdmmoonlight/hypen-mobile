@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:home="clr-namespace:HypenMaui.Pages.Home"
+    xmlns:nowplaying="clr-namespace:HypenMaui.Pages.NowPlaying"
     xmlns:settings="clr-namespace:HypenMaui.Pages.Settings"
     Title="Hypen Vault"
     Shell.FlyoutBehavior="Disabled"
@@ -23,7 +24,15 @@
                 Route="MainPage" />
         </Tab>
 
-        <!-- Tab 2: Settings & Auto-Update Control -->
+        <!-- Tab 2: Now Playing -->
+        <Tab Title="Now Playing" Icon="appicon.png">
+            <ShellContent 
+                Title="Now Playing"
+                ContentTemplate="{DataTemplate nowplaying:NowPlayingPage}" 
+                Route="NowPlayingTab" />
+        </Tab>
+
+        <!-- Tab 3: Settings & Auto-Update Control -->
         <Tab Title="Settings" Icon="appicon.png">
             <ShellContent 
                 Title="Settings"
