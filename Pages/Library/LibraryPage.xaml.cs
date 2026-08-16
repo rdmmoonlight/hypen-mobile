@@ -14,6 +14,7 @@ public partial class LibraryPage : ContentPage
 
     private readonly PlayerService _player = PlayerService.Current;
     private string _currentCategoryFilter = "ALL";
+    private string? _selectedFolder;
 
     public LibraryPage()
     {
@@ -100,6 +101,7 @@ public partial class LibraryPage : ContentPage
                 Cover = s.AlbumArtUri,
                 AudioUrl = s.ContentUri,
                 DurationMs = s.DurationMs,
+                FolderPath = Path.GetDirectoryName(s.FilePath) ?? "",
                 IsFavorite = _player.IsFavorite(s.Id)
             }).ToList();
 
@@ -135,7 +137,9 @@ public partial class LibraryPage : ContentPage
                                  song.Artist.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                                  song.Album.Contains(query, StringComparison.CurrentCultureIgnoreCase);
 
-            return matchesSearch;
+            bool matchesFolder = _selectedFolder == null || song.FolderName == _selectedFolder;
+
+            return matchesSearch && matchesFolder;
         });
 
         foreach (var song in filtered)
@@ -149,13 +153,54 @@ public partial class LibraryPage : ContentPage
         if (sender is Button btn && btn.CommandParameter is string category)
         {
             _currentCategoryFilter = category;
+            _selectedFolder = null;
 
             // Update visual state tombol filter
             FilterAllBtn.BackgroundColor = category == "ALL" ? Color.FromArgb("#00E5FF") : Color.FromArgb("#2A2A2A");
             FilterAllBtn.TextColor = category == "ALL" ? Colors.Black : Colors.White;
+            FolderFilterBtn.BackgroundColor = Color.FromArgb("#2A2A2A");
+            FolderFilterBtn.TextColor = Colors.White;
 
             FilterAndRenderSongs();
         }
+    }
+
+    // Menampilkan daftar folder tempat lagu-lagu tersimpan, agar bisa difilter per folder
+    private async void OnFolderFilterClicked(object sender, EventArgs e)
+    {
+        var folders = _allSongs
+            .Select(s => s.FolderName)
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .Distinct()
+            .OrderBy(f => f)
+            .ToArray();
+
+        if (folders.Length == 0)
+        {
+            await DisplayAlert("Folder", "Tidak ada folder terdeteksi di Library.", "OK");
+            return;
+        }
+
+        var choice = await DisplayActionSheet("Pilih Folder", "Batal", null, folders);
+        if (string.IsNullOrEmpty(choice) || choice == "Batal") return;
+
+        _selectedFolder = choice;
+        FilterAllBtn.BackgroundColor = Color.FromArgb("#2A2A2A");
+        FilterAllBtn.TextColor = Colors.White;
+        FolderFilterBtn.BackgroundColor = Color.FromArgb("#00E5FF");
+        FolderFilterBtn.TextColor = Colors.Black;
+
+        FilterAndRenderSongs();
+    }
+
+    // Mekanisme membuat playlist manual: minta nama, lalu simpan playlist kosong secara lokal
+    private async void OnAddPlaylistClicked(object sender, EventArgs e)
+    {
+        var name = await DisplayPromptAsync("Playlist Baru", "Masukkan nama playlist:", "Buat", "Batal", "Contoh: Lagu Santai");
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        PlaylistService.Create(name);
+        await DisplayAlert("Playlist Dibuat", $"Playlist \"{name.Trim()}\" berhasil dibuat.", "OK");
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e) => FilterAndRenderSongs();

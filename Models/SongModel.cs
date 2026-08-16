@@ -15,6 +15,10 @@ public class SongModel
     public string AudioUrl { get; set; } = "";
     public long DurationMs { get; set; }
 
+    /// <summary>Path folder tempat file lagu disimpan di penyimpanan perangkat, untuk filter berdasarkan folder.</summary>
+    public string FolderPath { get; set; } = "";
+    public string FolderName => string.IsNullOrWhiteSpace(FolderPath) ? "Tidak Diketahui" : (Path.GetFileName(FolderPath.TrimEnd('/')) is { Length: > 0 } name ? name : FolderPath);
+
     /// <summary>Durasi dalam format mm:ss untuk ditampilkan di daftar Library.</summary>
     public string DurationText => TimeSpan.FromMilliseconds(DurationMs < 0 ? 0 : DurationMs).ToString(DurationMs >= 3600000 ? @"h\:mm\:ss" : @"mm\:ss");
 

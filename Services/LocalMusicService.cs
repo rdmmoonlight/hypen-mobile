@@ -14,6 +14,7 @@ public class LocalSong
     public string AlbumArtUri { get; set; } = "";
     public string ContentUri { get; set; } = "";
     public long DurationMs { get; set; }
+    public string FilePath { get; set; } = "";
 }
 
 /// <summary>
@@ -36,7 +37,8 @@ public static class LocalMusicService
             MediaStore.Audio.Media.InterfaceConsts.Album,
             MediaStore.Audio.Media.InterfaceConsts.AlbumId,
             MediaStore.Audio.Media.InterfaceConsts.Year,
-            MediaStore.Audio.Media.InterfaceConsts.Duration
+            MediaStore.Audio.Media.InterfaceConsts.Duration,
+            MediaStore.Audio.Media.InterfaceConsts.Data
         };
 
         string selection = $"{MediaStore.Audio.Media.InterfaceConsts.IsMusic} != 0";
@@ -52,6 +54,7 @@ public static class LocalMusicService
         int albumIdCol = cursor.GetColumnIndexOrThrow(MediaStore.Audio.Media.InterfaceConsts.AlbumId);
         int yearCol = cursor.GetColumnIndexOrThrow(MediaStore.Audio.Media.InterfaceConsts.Year);
         int durationCol = cursor.GetColumnIndexOrThrow(MediaStore.Audio.Media.InterfaceConsts.Duration);
+        int dataCol = cursor.GetColumnIndexOrThrow(MediaStore.Audio.Media.InterfaceConsts.Data);
 
         while (cursor.MoveToNext())
         {
@@ -62,6 +65,7 @@ public static class LocalMusicService
             long albumId = cursor.GetLong(albumIdCol);
             int year = cursor.GetInt(yearCol);
             long duration = cursor.GetLong(durationCol);
+            string filePath = cursor.GetString(dataCol) ?? "";
 
             var contentUri = AndroidUri.WithAppendedPath(collection, id.ToString());
             var albumArtUri = AndroidUri.WithAppendedPath(
@@ -76,7 +80,8 @@ public static class LocalMusicService
                 Year = year > 0 ? year.ToString() : "",
                 ContentUri = contentUri?.ToString() ?? "",
                 AlbumArtUri = albumArtUri?.ToString() ?? "",
-                DurationMs = duration
+                DurationMs = duration,
+                FilePath = filePath
             });
         }
 

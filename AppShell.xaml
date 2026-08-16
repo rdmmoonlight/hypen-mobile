@@ -17,9 +17,9 @@
     <!-- BOTTOM BAR NAVIGATION FOR HYPEN VAULT -->
     <TabBar>
         <!-- Tab 1: Library & Music Player -->
-        <Tab Title="Vault" Icon="appicon.png">
+        <Tab Title="Library" Icon="appicon.png">
             <ShellContent 
-                Title="Vault Library"
+                Title="Library"
                 ContentTemplate="{DataTemplate home:MainPage}" 
                 Route="MainPage" />
         </Tab>

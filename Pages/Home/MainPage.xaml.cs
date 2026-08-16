@@ -13,6 +13,7 @@ public partial class MainPage : ContentPage
     public ObservableCollection<SongModel> DisplayedSongs { get; set; } = [];
 
     private readonly PlayerService _player = PlayerService.Current;
+    private string? _selectedFolder;
 
     public MainPage()
     {
@@ -98,6 +99,7 @@ public partial class MainPage : ContentPage
                 Cover = s.AlbumArtUri,
                 AudioUrl = s.ContentUri,
                 DurationMs = s.DurationMs,
+                FolderPath = Path.GetDirectoryName(s.FilePath) ?? "",
                 IsFavorite = _player.IsFavorite(s.Id)
             }).ToList();
 
@@ -127,9 +129,13 @@ public partial class MainPage : ContentPage
 
         foreach (var song in _allSongs)
         {
-            if (string.IsNullOrEmpty(query) ||
+            bool matchesSearch = string.IsNullOrEmpty(query) ||
                 song.Title.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-                song.Artist.Contains(query, StringComparison.CurrentCultureIgnoreCase))
+                song.Artist.Contains(query, StringComparison.CurrentCultureIgnoreCase);
+
+            bool matchesFolder = _selectedFolder == null || song.FolderName == _selectedFolder;
+
+            if (matchesSearch && matchesFolder)
             {
                 DisplayedSongs.Add(song);
             }
@@ -144,7 +150,54 @@ public partial class MainPage : ContentPage
     private async void OnRescanClicked(object? sender, EventArgs e) => await LoadLibraryAsync();
 
     // Handler untuk event OnFilterCategoryClicked dari MainPage.xaml
-    private void OnFilterCategoryClicked(object? sender, EventArgs e) => FilterAndRenderSongs();
+    private void OnFilterCategoryClicked(object? sender, EventArgs e)
+    {
+        _selectedFolder = null;
+        FilterAllBtn.BackgroundColor = Color.FromArgb("#00E5FF");
+        FilterAllBtn.TextColor = Colors.Black;
+        FolderFilterBtn.BackgroundColor = Color.FromArgb("#1E1E1E");
+        FolderFilterBtn.TextColor = Colors.White;
+
+        FilterAndRenderSongs();
+    }
+
+    // Menampilkan daftar folder tempat lagu-lagu tersimpan, agar bisa difilter per folder
+    private async void OnFolderFilterClicked(object? sender, EventArgs e)
+    {
+        var folders = _allSongs
+            .Select(s => s.FolderName)
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .Distinct()
+            .OrderBy(f => f)
+            .ToArray();
+
+        if (folders.Length == 0)
+        {
+            await DisplayAlert("Folder", "Tidak ada folder terdeteksi di Library.", "OK");
+            return;
+        }
+
+        var choice = await DisplayActionSheet("Pilih Folder", "Batal", null, folders);
+        if (string.IsNullOrEmpty(choice) || choice == "Batal") return;
+
+        _selectedFolder = choice;
+        FilterAllBtn.BackgroundColor = Color.FromArgb("#1E1E1E");
+        FilterAllBtn.TextColor = Colors.White;
+        FolderFilterBtn.BackgroundColor = Color.FromArgb("#00E5FF");
+        FolderFilterBtn.TextColor = Colors.Black;
+
+        FilterAndRenderSongs();
+    }
+
+    // Mekanisme membuat playlist manual: minta nama, lalu simpan playlist kosong secara lokal
+    private async void OnAddPlaylistClicked(object? sender, EventArgs e)
+    {
+        var name = await DisplayPromptAsync("Playlist Baru", "Masukkan nama playlist:", "Buat", "Batal", "Contoh: Lagu Santai");
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        PlaylistService.Create(name);
+        await DisplayAlert("Playlist Dibuat", $"Playlist \"{name.Trim()}\" berhasil dibuat.", "OK");
+    }
 
     // Handler untuk event OnSongItemTapped (TapGestureRecognizer di item list)
     private async void OnSongItemTapped(object? sender, TappedEventArgs e)
