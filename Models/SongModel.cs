@@ -10,7 +10,7 @@ public enum CloudProvider
 }
 
 /// <summary>
-/// Model Lagu MAUI - Diselaraskan dengan Master Global SSOT (Hypen.Web.Models.SongModel)
+/// Model Lagu Utama MAUI
 /// </summary>
 public class SongModel
 {
@@ -27,7 +27,7 @@ public class SongModel
     public string? MusicBrainzId { get; set; }
 
     // =========================================================================
-    // 3. METADATA LAGU BASE (SSOT)
+    // 3. METADATA LAGU BASE
     // =========================================================================
     public string Title { get; set; } = string.Empty;
     public string Artist { get; set; } = string.Empty;
@@ -50,7 +50,7 @@ public class SongModel
     public bool IsFavorite { get; set; }
 
     // =========================================================================
-    // 5. METADATA KHUSUS LOKAL & AUDIOPHILE (MAUI Local Storage)
+    // 5. METADATA KHUSUS LOKAL & AUDIOPHILE
     // =========================================================================
     public string FilePath { get; set; } = string.Empty;
     public string FolderPath { get; set; } = string.Empty;
@@ -108,3 +108,6 @@ public class SongModel
         set => _streamUrl = value;
     }
 }
+
+// Compatibility class agar GoogleDriveService / TeraBoxService tidak error
+public class CloudSongModel : SongModel { }

@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using Hypen.Web.Models;
-using Hypen.Web.Services;
+using HypenMaui.Models;
+using HypenMaui.Services;
 
 namespace HypenMaui.Pages.LibraryFusion;
 
