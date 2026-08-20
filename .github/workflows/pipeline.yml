@@ -10,11 +10,11 @@ concurrency:
 
 jobs:
   # ====================================================
-  # STEP 1: LINTING & AUTO-FIX (Jalan di main & production)
+  # PROSES MAIN: LINTING & AUTO-FIX
   # ====================================================
   lint-and-fix:
     name: Code Formatting & Quality Check
-    if: github.actor != 'github-actions[bot]'
+    if: github.ref_name == 'main' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -53,19 +53,19 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style(ci): auto-fix code style and linting [skip ci]"
-          branch: ${{ github.ref_name }}
+          branch: main
           file_pattern: 'apps/**/*.cs apps/**/*.razor'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           internal_git_options: '-c rebase.autoStash=true'
 
   # ====================================================
-  # STEP 2: VERSION GENERATOR (Khusus Production)
+  # PROSES MAIN: VERSION GENERATOR
   # ====================================================
   prepare-version:
     name: 1. Generate App Version
     needs: lint-and-fix
-    if: github.ref_name == 'production'
+    if: always() && github.ref_name == 'main' && (needs.lint-and-fix.result == 'success' || needs.lint-and-fix.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version_name: ${{ steps.versioning.outputs.version_name }}
@@ -88,11 +88,81 @@ jobs:
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
 
   # ====================================================
-  # CABANG PARALEL A: BUILD & VALIDATE APK (Khusus Production)
+  # PROSES MAIN: GENERATE RELEASE NOTES & METADATA
+  # ====================================================
+  generate-release-info:
+    name: 2. Generate Release Notes & Metadata
+    needs: prepare-version
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    outputs:
+      release_body: ${{ steps.notes.outputs.body }}
+      build_meta: ${{ steps.meta.outputs.meta }}
+    steps:
+      - name: Draft Release Notes
+        id: notes
+        run: |
+          {
+            echo "body<<EOF"
+            echo "### 🚀 Release Highlights"
+            echo "- Offline Local Music Vault Player"
+            echo "- Personal Cloud Vault (Google Drive & TeraBox Integration)"
+            echo "- Integrated Last.fm Scrobbler"
+            echo "- AppShell Navigation Bar System"
+            echo "- Automatic In-App Updating"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create Metadata String
+        id: meta
+        run: |
+          META_TEXT="Build ID: ${{ github.run_number }} | Branch: ${{ github.ref_name }} | Commit: ${{ github.sha }}"
+          echo "meta=${META_TEXT}" >> $GITHUB_OUTPUT
+
+  # ====================================================
+  # PROSES MAIN: PUBLISH TO GITHUB RELEASES
+  # ====================================================
+  publish-github-release:
+    name: 3. Publish to GitHub Releases
+    needs: [prepare-version, generate-release-info]
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Final APK Artifact from Production Branch
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          branch: production
+          name: Hypen-Vault-MAUI-APK
+          path: release-assets
+          search_artifacts: true
+
+      - name: Rename APK Asset
+        run: |
+          if [ -f "release-assets/HypenVault-Release.apk" ]; then
+            mv "release-assets/HypenVault-Release.apk" "release-assets/HypenVault-${{ needs.prepare-version.outputs.tag_name }}.apk"
+          fi
+
+      - name: Create Official GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-version.outputs.tag_name }}
+          name: Hypen Vault ${{ needs.prepare-version.outputs.tag_name }}
+          body: |
+            **Version:** ${{ needs.prepare-version.outputs.tag_name }}
+            **Metadata:** ${{ needs.generate-release-info.outputs.build_meta }}
+
+            ${{ needs.generate-release-info.outputs.release_body }}
+          files: release-assets/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ====================================================
+  # PROSES KHUSUS PRODUCTION: END-TO-END BUILD APK
   # ====================================================
   build-and-validate-apk:
-    name: 2a. Build & Validate APK
-    needs: prepare-version
+    name: Build & Validate APK (Production Only)
     if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     steps:
@@ -100,6 +170,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Calculate Temp Version Name
+        id: temp_ver
+        run: |
+          YEAR=$(date +'%y')
+          MONTH=$(date +'%m')
+          BUILD_NUM=${{ github.run_number }}
+          echo "version_name=${YEAR}.${MONTH}.${BUILD_NUM}" >> $GITHUB_OUTPUT
 
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
@@ -163,7 +241,7 @@ jobs:
           
           dotnet build HypenMaui.csproj -c Release -f net10.0-android36.1 --no-restore \
             -p:RuntimeIdentifier=android-arm64 \
-            -p:ApplicationDisplayVersion="${{ needs.prepare-version.outputs.version_name }}" \
+            -p:ApplicationDisplayVersion="${{ steps.temp_ver.outputs.version_name }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
             -p:LASTFM_KEY="${LASTFM_KEY:-dummy_key}" \
             -p:LASTFM_SECRET="${LASTFM_SECRET:-dummy_secret}" \
@@ -205,83 +283,10 @@ jobs:
             exit 1
           fi
 
-          cp "$APK_FILE" "release-assets/HypenVault-${{ needs.prepare-version.outputs.tag_name }}.apk"
+          cp "$APK_FILE" "release-assets/HypenVault-Release.apk"
 
       - name: Upload Single Final APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Hypen-Vault-MAUI-APK
           path: release-assets/*.apk
-
-  # ====================================================
-  # CABANG PARALEL B: GENERATE CHANGELOG (Khusus Production)
-  # ====================================================
-  generate-release-notes:
-    name: 2b. Generate Changelog & Notes
-    needs: prepare-version
-    if: github.ref_name == 'production'
-    runs-on: ubuntu-latest
-    outputs:
-      release_body: ${{ steps.notes.outputs.body }}
-    steps:
-      - name: Draft Release Notes
-        id: notes
-        run: |
-          {
-            echo "body<<EOF"
-            echo "### 🚀 Release Highlights"
-            echo "- Offline Local Music Vault Player"
-            echo "- Personal Cloud Vault (Google Drive & TeraBox Integration)"
-            echo "- Integrated Last.fm Scrobbler"
-            echo "- AppShell Navigation Bar System"
-            echo "- Automatic In-App Updating"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-  # ====================================================
-  # CABANG PARALEL C: BUILD METADATA (Khusus Production)
-  # ====================================================
-  generate-build-summary:
-    name: 2c. Prepare Build Metadata
-    needs: prepare-version
-    if: github.ref_name == 'production'
-    runs-on: ubuntu-latest
-    outputs:
-      build_meta: ${{ steps.meta.outputs.meta }}
-    steps:
-      - name: Create Metadata String
-        id: meta
-        run: |
-          META_TEXT="Build ID: ${{ github.run_number }} | Branch: ${{ github.ref_name }} | Commit: ${{ github.sha }}"
-          echo "meta=${META_TEXT}" >> $GITHUB_OUTPUT
-
-  # ====================================================
-  # KOTAK AKHIR: PUBLISH RELEASE (Khusus Production)
-  # ====================================================
-  publish-github-release:
-    name: 3. Publish to GitHub Releases
-    needs: [prepare-version, build-and-validate-apk, generate-release-notes, generate-build-summary]
-    if: github.ref_name == 'production'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download Final APK Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Hypen-Vault-MAUI-APK
-          path: release-assets
-
-      - name: Create Official GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.prepare-version.outputs.tag_name }}
-          name: Hypen Vault ${{ needs.prepare-version.outputs.tag_name }}
-          body: |
-            **Version:** ${{ needs.prepare-version.outputs.tag_name }}
-            **Metadata:** ${{ needs.generate-build-summary.outputs.build_meta }}
-
-            ${{ needs.generate-release-notes.outputs.release_body }}
-          files: release-assets/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
