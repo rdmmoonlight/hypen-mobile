@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:home="clr-namespace:HypenMaui.Pages.Home"
     xmlns:fusion="clr-namespace:HypenMaui.Pages.LibraryFusion"
+    xmlns:downloader="clr-namespace:HypenMaui.Pages.Downloader"
     xmlns:nowplaying="clr-namespace:HypenMaui.Pages.NowPlaying"
     xmlns:settings="clr-namespace:HypenMaui.Pages.Settings">
 
@@ -24,7 +25,15 @@
             Route="LibraryFusionPage" />
     </Tab>
 
-    <!-- Tab 3: Now Playing -->
+    <!-- Tab 3: Downloader -->
+    <Tab Title="Downloader" Icon="appicon.png">
+        <ShellContent
+            Title="Downloader"
+            ContentTemplate="{DataTemplate downloader:DownloaderPage}"
+            Route="DownloaderPage" />
+    </Tab>
+
+    <!-- Tab 4: Now Playing -->
     <Tab Title="Now Playing" Icon="appicon.png">
         <ShellContent
             Title="Now Playing"
@@ -32,7 +41,7 @@
             Route="NowPlayingTab" />
     </Tab>
 
-    <!-- Tab 4: Settings & Auto-Update Control -->
+    <!-- Tab 5: Settings & Auto-Update Control -->
     <Tab Title="Settings" Icon="appicon.png">
         <ShellContent
             Title="Settings"
