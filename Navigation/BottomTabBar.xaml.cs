@@ -1,3 +1,4 @@
+using HypenMaui.Pages.Downloader;
 using HypenMaui.Pages.Home;
 using HypenMaui.Pages.Library;
 using HypenMaui.Pages.LibraryFusion;
@@ -21,6 +22,7 @@ public partial class BottomTabBar : TabBar
         Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
         Routing.RegisterRoute(nameof(LibraryPage), typeof(LibraryPage));
         Routing.RegisterRoute(nameof(LibraryFusionPage), typeof(LibraryFusionPage));
+        Routing.RegisterRoute(nameof(DownloaderPage), typeof(DownloaderPage));
         Routing.RegisterRoute(nameof(NowPlayingPage), typeof(NowPlayingPage));
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(EditMetadataPage), typeof(EditMetadataPage));
