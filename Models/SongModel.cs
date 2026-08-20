@@ -4,9 +4,7 @@ public enum CloudProvider
 {
     Local,
     YouTube,
-    MusicBrainz,
-    GoogleDrive,
-    TeraBox
+    MusicBrainz
 }
 
 /// <summary>
@@ -108,6 +106,3 @@ public class SongModel
         set => _streamUrl = value;
     }
 }
-
-// Compatibility class agar GoogleDriveService / TeraBoxService tidak error
-public class CloudSongModel : SongModel { }
