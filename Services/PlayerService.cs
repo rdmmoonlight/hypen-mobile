@@ -110,11 +110,19 @@ public partial class PlayerService : INotifyPropertyChanged
     // --- Wiring MediaElement ---
     public void AttachPlayer(MediaElement element)
     {
+        ArgumentNullException.ThrowIfNull(element);
+
         if (_element == element) return;
         _element = element;
 
         _element.PositionChanged += (_, e) => Position = e.Position;
-        _element.MediaOpened += (_, _) => Duration = _element.Duration;
+        _element.MediaOpened += (sender, _) =>
+        {
+            if (sender is MediaElement media)
+            {
+                Duration = media.Duration;
+            }
+        };
         _element.MediaEnded += (_, _) => OnMediaEnded();
         _element.StateChanged += (_, e) =>
             IsPlaying = e.NewState.ToString() == "Playing";

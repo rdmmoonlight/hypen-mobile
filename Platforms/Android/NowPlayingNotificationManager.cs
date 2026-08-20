@@ -4,20 +4,12 @@ using AndroidX.Core.App;
 
 namespace HypenMaui.Platforms.Android;
 
-/// <summary>
-/// Notifikasi "Now Playing" milik aplikasi. Menimpa notifikasi bawaan
-/// CommunityToolkit.Maui.MediaElement (id=1, channel "1") supaya perilaku
-/// dismiss bisa dikontrol sesuai status playback:
-/// - Sedang play  -> ongoing, tidak bisa di-swipe. Satu-satunya cara menutup
-///                    adalah tombol "Force Close" yang mematikan aplikasi.
-/// - Tidak play   -> bisa langsung di-swipe/dismiss dari status bar.
-/// </summary>
 public static class NowPlayingNotificationManager
 {
     private const string ChannelId = "1"; // sama dengan channel bawaan MediaElement
     private const int NotificationId = 1; // sama dengan id bawaan MediaElement
 
-    public static void Update(bool isPlaying, string title, string artist)
+    public static void Update(bool isPlaying, string? title, string? artist)
     {
         var context = Platform.AppContext;
         if (context == null) return;
@@ -42,14 +34,24 @@ public static class NowPlayingNotificationManager
             // Sedang memutar lagu: tidak bisa di-swipe, hanya lewat tombol Force Close.
             builder.SetOngoing(true);
             builder.SetAutoCancel(false);
-            builder.AddAction(BuildForceCloseAction(context));
+            
+            var forceCloseAction = BuildForceCloseAction(context);
+            if (forceCloseAction != null)
+            {
+                builder.AddAction(forceCloseAction);
+            }
         }
         else
         {
             // Tidak sedang memutar lagu: bisa langsung di-swipe/dismiss.
             builder.SetOngoing(false);
             builder.SetAutoCancel(true);
-            builder.SetDeleteIntent(BuildBroadcastPendingIntent(context, "ACTION_DISMISS_NOTIFICATION", 2));
+            
+            var deleteIntent = BuildBroadcastPendingIntent(context, "ACTION_DISMISS_NOTIFICATION", 2);
+            if (deleteIntent != null)
+            {
+                builder.SetDeleteIntent(deleteIntent);
+            }
         }
 
         NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
@@ -78,9 +80,12 @@ public static class NowPlayingNotificationManager
     private static PendingIntent? CreateContentIntent(Context context)
     {
         var packageName = context.PackageName;
-        if (packageName == null) return null;
+        if (string.IsNullOrEmpty(packageName)) return null;
 
-        var launchIntent = context.PackageManager?.GetLaunchIntentForPackage(packageName);
+        var packageManager = context.PackageManager;
+        if (packageManager == null) return null;
+
+        var launchIntent = packageManager.GetLaunchIntentForPackage(packageName);
         if (launchIntent == null) return null;
 
         launchIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
@@ -92,9 +97,10 @@ public static class NowPlayingNotificationManager
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
     }
 
-    private static NotificationCompat.Action BuildForceCloseAction(Context context)
+    private static NotificationCompat.Action? BuildForceCloseAction(Context context)
     {
         var pendingIntent = BuildBroadcastPendingIntent(context, "ACTION_FORCE_CLOSE", 1);
+        if (pendingIntent == null) return null;
 
         return new NotificationCompat.Action.Builder(
             global::Android.Resource.Drawable.IcMenuCloseClearCancel,
@@ -102,7 +108,7 @@ public static class NowPlayingNotificationManager
             pendingIntent).Build();
     }
 
-    private static PendingIntent BuildBroadcastPendingIntent(Context context, string action, int requestCode)
+    private static PendingIntent? BuildBroadcastPendingIntent(Context context, string action, int requestCode)
     {
         var intent = new Intent(context, typeof(MediaNotificationReceiver));
         intent.SetAction(action);
@@ -111,6 +117,6 @@ public static class NowPlayingNotificationManager
             context,
             requestCode,
             intent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable)!;
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
     }
 }

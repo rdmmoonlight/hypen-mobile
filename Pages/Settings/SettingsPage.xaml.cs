@@ -35,7 +35,7 @@ public partial class SettingsPage : ContentPage
             if (await _lastFm.IsAuthenticatedAsync())
             {
                 _lastFm.ForgetSession();
-                await DisplayAlert("Info", "Koneksi Last.fm diputuskan.", "OK");
+                await DisplayAlertAsync("Info", "Koneksi Last.fm diputuskan.", "OK");
                 return;
             }
 
@@ -45,15 +45,15 @@ public partial class SettingsPage : ContentPage
 
             await Launcher.Default.OpenAsync(new Uri($"https://www.last.fm/api/auth/?api_key={_lastFm.PublicApiKey}&token={token}"));
 
-            if (await DisplayAlert("Otorisasi", "Apakah Anda sudah memberikan izin di browser?", "Sudah", "Batal"))
+            if (await DisplayAlertAsync("Otorisasi", "Apakah Anda sudah memberikan izin di browser?", "Sudah", "Batal"))
             {
                 bool ok = await _lastFm.FetchSessionAsync(token);
-                await DisplayAlert(ok ? "Sukses" : "Gagal", ok ? "Terhubung ke Last.fm!" : "Gagal verifikasi sesi.", "OK");
+                await DisplayAlertAsync(ok ? "Sukses" : "Gagal", ok ? "Terhubung ke Last.fm!" : "Gagal verifikasi sesi.", "OK");
             }
         }
         catch (Exception ex) 
         { 
-            await DisplayAlert("Error", ex.Message, "OK"); 
+            await DisplayAlertAsync("Error", ex.Message, "OK"); 
         }
         finally 
         { 
@@ -72,7 +72,7 @@ public partial class SettingsPage : ContentPage
         }
         catch 
         { 
-            await DisplayAlert("Error", "Gagal memeriksa pembaruan.", "OK"); 
+            await DisplayAlertAsync("Error", "Gagal memeriksa pembaruan.", "OK"); 
         }
     }
 }

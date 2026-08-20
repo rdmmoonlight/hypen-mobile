@@ -33,6 +33,7 @@ public static class MauiProgram
 
         // 2. Registrasi Services
         builder.Services.AddSingleton<UpdateService>();
+        builder.Services.AddSingleton<ISongService, SongService>();
 
 #if DEBUG
         builder.Logging.AddDebug();

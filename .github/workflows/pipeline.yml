@@ -177,28 +177,44 @@ jobs:
         run: |
           mkdir -p release-assets
           
-          APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
-          if [ -z "$APK_FILE" ]; then
-            APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
-          fi
+          # Percabangan Pencarian File APK
+          SIGNED_APK=$(find bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
+          UNSIGNED_APK=$(find bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
 
-          if [ -z "$APK_FILE" ]; then
+          if [ -n "$SIGNED_APK" ]; then
+            echo "--- APK Signed ditemukan ---"
+            APK_FILE="$SIGNED_APK"
+          elif [ -n "$UNSIGNED_APK" ]; then
+            echo "--- APK Signed tidak ditemukan, menggunakan APK standar ---"
+            APK_FILE="$UNSIGNED_APK"
+          else
             echo "::error::File APK tidak ditemukan!"
             ls -R bin/Release/net10.0-android* || true
             exit 1
           fi
 
           FILE_SIZE=$(stat -c%s "$APK_FILE")
-          echo "APK Found: $APK_FILE ($FILE_SIZE bytes)"
+          echo "APK Selected: $APK_FILE ($FILE_SIZE bytes)"
           
-          if [ $FILE_SIZE -lt 10485760 ]; then
-            echo "::error::Ukuran APK terlalu kecil ($FILE_SIZE bytes)!"
+          # Percabangan Validasi Ukuran File
+          MIN_SIZE=10485760 # 10MB
+          if [ "$FILE_SIZE" -ge "$MIN_SIZE" ]; then
+            echo "✓ Ukuran APK valid ($FILE_SIZE bytes)"
+            cp "$APK_FILE" "release-assets/HypenVault-${{ steps.versioning.outputs.tag_name }}.apk"
+          else
+            echo "::error::Ukuran APK terlalu kecil ($FILE_SIZE bytes), batas minimal $MIN_SIZE bytes."
             exit 1
           fi
 
-          cp "$APK_FILE" "release-assets/HypenVault-${{ steps.versioning.outputs.tag_name }}.apk"
+      # 6. Upload Build Artifact (Agar muncul di halaman log Actions Run)
+      - name: Upload APK to Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HypenVault-APK-${{ steps.versioning.outputs.tag_name }}
+          path: release-assets/*.apk
+          retention-days: 7
 
-      # 6. Prepare Release Metadata & Notes
+      # 7. Prepare Release Metadata & Notes
       - name: Generate Release Notes & Metadata
         id: release_info
         run: |
@@ -216,7 +232,7 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-      # 7. Publish Official Release
+      # 8. Publish Official GitHub Release
       - name: Create Official GitHub Release
         uses: softprops/action-gh-release@v2
         with:
