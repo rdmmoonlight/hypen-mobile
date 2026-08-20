@@ -188,11 +188,11 @@ public partial class MainPage : ContentPage
 
         if (folders.Length == 0)
         {
-            await DisplayAlert("Folder", "Tidak ada folder terdeteksi di Library.", "OK");
+            await DisplayAlertAsync("Folder", "Tidak ada folder terdeteksi di Library.", "OK");
             return;
         }
 
-        var choice = await DisplayActionSheet("Pilih Folder", "Batal", null, folders);
+        var choice = await DisplayActionSheetAsync("Pilih Folder", "Batal", null, folders);
         if (string.IsNullOrEmpty(choice) || choice == "Batal") return;
 
         _selectedFolder = choice;
@@ -211,7 +211,7 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrWhiteSpace(name)) return;
 
         PlaylistService.Create(name);
-        await DisplayAlert("Playlist Dibuat", $"Playlist \"{name.Trim()}\" berhasil dibuat.", "OK");
+        await DisplayAlertAsync("Playlist Dibuat", $"Playlist \"{name.Trim()}\" berhasil dibuat.", "OK");
     }
 
     // Handler untuk event OnSongItemTapped (TapGestureRecognizer di item list)
@@ -282,7 +282,7 @@ public partial class MainPage : ContentPage
         var selected = SongsCollectionView.SelectedItems?.OfType<SongModel>().ToList() ?? [];
         if (selected.Count == 0)
         {
-            await DisplayAlert("Belum Ada Lagu", "Pilih minimal satu lagu dulu.", "OK");
+            await DisplayAlertAsync("Belum Ada Lagu", "Pilih minimal satu lagu dulu.", "OK");
             return;
         }
 
