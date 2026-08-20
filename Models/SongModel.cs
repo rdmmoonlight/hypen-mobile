@@ -1,40 +1,110 @@
 namespace HypenMaui.Models;
 
+public enum CloudProvider
+{
+    Local,
+    YouTube,
+    MusicBrainz,
+    GoogleDrive,
+    TeraBox
+}
+
 /// <summary>
-/// Representasi satu lagu di library lokal, dipakai bersama oleh Library Page,
-/// Now Playing Page, dan PlayerService (queue).
+/// Model Lagu MAUI - Diselaraskan dengan Master Global SSOT (Hypen.Web.Models.SongModel)
 /// </summary>
 public class SongModel
 {
+    // =========================================================================
+    // 1. PRIMARY KEY & RELASI
+    // =========================================================================
     public long Id { get; set; }
-    public string Title { get; set; } = "";
-    public string Artist { get; set; } = "";
-    public string Album { get; set; } = "";
-    public string Year { get; set; } = "";
-    public string Cover { get; set; } = "";
-    public string AudioUrl { get; set; } = "";
-    public long DurationMs { get; set; }
+    public long? RawId { get; set; }
 
-    /// <summary>Path absolut file lagu di penyimpanan perangkat — dipakai untuk menulis tag metadata langsung ke file.</summary>
-    public string FilePath { get; set; } = "";
+    // =========================================================================
+    // 2. EXTERNAL IDENTIFIERS
+    // =========================================================================
+    public string? YoutubeVideoId { get; set; }
+    public string? MusicBrainzId { get; set; }
 
-    /// <summary>Path folder tempat file lagu disimpan di penyimpanan perangkat, untuk filter berdasarkan folder.</summary>
-    public string FolderPath { get; set; } = "";
-    public string FolderName => string.IsNullOrWhiteSpace(FolderPath) ? "Tidak Diketahui" : (Path.GetFileName(FolderPath.TrimEnd('/')) is { Length: > 0 } name ? name : FolderPath);
+    // =========================================================================
+    // 3. METADATA LAGU BASE (SSOT)
+    // =========================================================================
+    public string Title { get; set; } = string.Empty;
+    public string Artist { get; set; } = string.Empty;
+    public string? Album { get; set; } = "Single";
+    public int? ReleaseYear { get; set; }
+    public string? Country { get; set; } = "Unknown";
+    public string? AlbumCoverUrl { get; set; }
+    public string? AudioUrl { get; set; }
+    public int? DurationSeconds { get; set; }
 
-    /// <summary>Durasi dalam format mm:ss untuk ditampilkan di daftar Library.</summary>
-    public string DurationText => TimeSpan.FromMilliseconds(DurationMs < 0 ? 0 : DurationMs).ToString(DurationMs >= 3600000 ? @"h\:mm\:ss" : @"mm\:ss");
+    // =========================================================================
+    // 4. STATUS, PROVIDER & TRACKING
+    // =========================================================================
+    public string Status { get; set; } = "PENDING";
+    public bool IsDownloaded { get; set; } = false;
+    public bool IsComplete { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public CloudProvider Provider { get; set; } = CloudProvider.Local;
+    public bool IsSelected { get; set; }
+    public bool IsFavorite { get; set; }
 
-    // Metadata audiophile — diisi lazy (saat lagu mulai diputar), bukan saat scan awal,
-    // supaya scan library tetap cepat untuk koleksi besar.
-    public string Format { get; set; } = "";
+    // =========================================================================
+    // 5. METADATA KHUSUS LOKAL & AUDIOPHILE (MAUI Local Storage)
+    // =========================================================================
+    public string FilePath { get; set; } = string.Empty;
+    public string FolderPath { get; set; } = string.Empty;
+    public string Format { get; set; } = string.Empty;
     public int BitrateKbps { get; set; }
     public bool MetadataLoaded { get; set; }
-
-    // Diisi belakangan oleh MetadataEnrichmentService (Last.fm/MusicBrainz/TheAudioDB) kalau
-    // ditemukan cover resolusi lebih tinggi daripada thumbnail lokal dari MediaStore.
     public string? EnrichedCoverPath { get; set; }
-    public string? LyricsSourceUrl { get; set; } // dipakai kalau lirik penuh cuma tersedia sbg link (Genius)
+    public string? LyricsSourceUrl { get; set; }
+    public string SizeFormatted { get; set; } = string.Empty;
 
-    public bool IsFavorite { get; set; }
+    // =========================================================================
+    // 6. HELPER PROPERTIES & COMPATIBILITY ALIASES
+    // =========================================================================
+    public string Year
+    {
+        get => ReleaseYear?.ToString() ?? string.Empty;
+        set => ReleaseYear = int.TryParse(value, out var y) ? y : null;
+    }
+
+    public string Cover
+    {
+        get => AlbumCoverUrl ?? string.Empty;
+        set => AlbumCoverUrl = value;
+    }
+
+    public long DurationMs
+    {
+        get => (DurationSeconds ?? 0) * 1000L;
+        set => DurationSeconds = (int)(value / 1000);
+    }
+
+    public string DurationText => TimeSpan.FromMilliseconds(DurationMs < 0 ? 0 : DurationMs)
+        .ToString(DurationMs >= 3600000 ? @"h\:mm\:ss" : @"mm\:ss");
+
+    public string FolderName => string.IsNullOrWhiteSpace(FolderPath)
+        ? "Tidak Diketahui"
+        : (Path.GetFileName(FolderPath.TrimEnd('/', '\\')) is { Length: > 0 } name ? name : FolderPath);
+
+    public string? YoutubeId
+    {
+        get => YoutubeVideoId;
+        set => YoutubeVideoId = value;
+    }
+
+    public string? Mbid
+    {
+        get => MusicBrainzId;
+        set => MusicBrainzId = value;
+    }
+
+    private string? _streamUrl;
+    public string StreamUrl
+    {
+        get => string.IsNullOrEmpty(_streamUrl) ? (AudioUrl ?? string.Empty) : _streamUrl;
+        set => _streamUrl = value;
+    }
 }

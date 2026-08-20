@@ -6,6 +6,12 @@
              Title="Library Fusion Vault"
              BackgroundColor="#121212">
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Converter x:Key="InverseBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *" Padding="16" RowSpacing="12">
         
         <!-- Search Input -->
@@ -59,7 +65,8 @@
                     Clicked="OnDeleteSelectedClicked" />
         </Grid>
 
-        <Separator Grid.Row="3" Color="#333333" />
+        <!-- Replacement for Separator -->
+        <BoxView Grid.Row="3" HeightRequest="1" Color="#333333" HorizontalOptions="Fill" />
 
         <!-- Songs CollectionView -->
         <RefreshView Grid.Row="4" x:Name="RefreshControl" Refreshing="OnRefreshTriggered">
