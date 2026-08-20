@@ -2,7 +2,7 @@ name: Hypen Mobile CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, production ]
 
 concurrency:
   group: ci-cd-${{ github.ref }}
@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   # ====================================================
-  # STEP 1: LINTING & AUTO-FIX
+  # STEP 1: LINTING & AUTO-FIX (Jalan di main & production)
   # ====================================================
   lint-and-fix:
     name: Code Formatting & Quality Check
@@ -53,18 +53,19 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style(ci): auto-fix code style and linting [skip ci]"
-          branch: main
+          branch: ${{ github.ref_name }}
           file_pattern: 'apps/**/*.cs apps/**/*.razor'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           internal_git_options: '-c rebase.autoStash=true'
 
   # ====================================================
-  # STEP 2: VERSION GENERATOR (Berjalan setelah Linting)
+  # STEP 2: VERSION GENERATOR (Khusus Production)
   # ====================================================
   prepare-version:
     name: 1. Generate App Version
     needs: lint-and-fix
+    if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     outputs:
       version_name: ${{ steps.versioning.outputs.version_name }}
@@ -87,11 +88,12 @@ jobs:
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
 
   # ====================================================
-  # CABANG PARALEL A: BUILD & VALIDATE APK
+  # CABANG PARALEL A: BUILD & VALIDATE APK (Khusus Production)
   # ====================================================
   build-and-validate-apk:
     name: 2a. Build & Validate APK
     needs: prepare-version
+    if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -116,18 +118,10 @@ jobs:
       - name: Aggressive Clean Build Artifacts
         run: |
           set -e
-          # Clean entire solution
           dotnet clean HypenMaui.csproj -c Release --verbosity minimal || true
-          
-          # Remove all obj and bin directories
           rm -rf bin obj
-          
-          # Clear NuGet cache for MAUI packages
           rm -rf ~/.nuget/packages/microsoft.maui* || true
-          
-          # Clear dotnet cache
           dotnet nuget locals all --clear || true
-          
           echo "✓ Build artifacts cleaned successfully"
 
       - name: Decode Release Keystore
@@ -138,7 +132,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum diset. APK tidak akan tertanda dengan key tetap, update akan gagal (App not installed)."
+            echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum diset."
             exit 1
           fi
           if [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
@@ -165,10 +159,8 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          # Fresh restore
           dotnet restore HypenMaui.csproj -p:TargetFramework=net10.0-android36.1
           
-          # Build Release dengan signing
           dotnet build HypenMaui.csproj -c Release -f net10.0-android36.1 --no-restore \
             -p:RuntimeIdentifier=android-arm64 \
             -p:ApplicationDisplayVersion="${{ needs.prepare-version.outputs.version_name }}" \
@@ -194,7 +186,6 @@ jobs:
         run: |
           mkdir -p release-assets
           
-          # Cari APK di seluruh direktori output build
           APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
           if [ -z "$APK_FILE" ]; then
             APK_FILE=$(find bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
@@ -202,7 +193,6 @@ jobs:
 
           if [ -z "$APK_FILE" ]; then
             echo "::error::File APK tidak ditemukan!"
-            echo "--- Struktur folder output build ---"
             ls -R bin/Release/net10.0-android* || true
             exit 1
           fi
@@ -224,11 +214,12 @@ jobs:
           path: release-assets/*.apk
 
   # ====================================================
-  # CABANG PARALEL B: GENERATE CHANGELOG
+  # CABANG PARALEL B: GENERATE CHANGELOG (Khusus Production)
   # ====================================================
   generate-release-notes:
     name: 2b. Generate Changelog & Notes
     needs: prepare-version
+    if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     outputs:
       release_body: ${{ steps.notes.outputs.body }}
@@ -248,11 +239,12 @@ jobs:
           } >> $GITHUB_OUTPUT
 
   # ====================================================
-  # CABANG PARALEL C: BUILD METADATA
+  # CABANG PARALEL C: BUILD METADATA (Khusus Production)
   # ====================================================
   generate-build-summary:
     name: 2c. Prepare Build Metadata
     needs: prepare-version
+    if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     outputs:
       build_meta: ${{ steps.meta.outputs.meta }}
@@ -264,11 +256,12 @@ jobs:
           echo "meta=${META_TEXT}" >> $GITHUB_OUTPUT
 
   # ====================================================
-  # KOTAK AKHIR (PUBLISH RELEASE)
+  # KOTAK AKHIR: PUBLISH RELEASE (Khusus Production)
   # ====================================================
   publish-github-release:
     name: 3. Publish to GitHub Releases
     needs: [prepare-version, build-and-validate-apk, generate-release-notes, generate-build-summary]
+    if: github.ref_name == 'production'
     runs-on: ubuntu-latest
     permissions:
       contents: write
