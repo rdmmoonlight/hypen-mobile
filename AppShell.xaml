@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:home="clr-namespace:HypenMaui.Pages.Home"
+    xmlns:fusion="clr-namespace:HypenMaui.Pages.LibraryFusion"
     xmlns:nowplaying="clr-namespace:HypenMaui.Pages.NowPlaying"
     xmlns:settings="clr-namespace:HypenMaui.Pages.Settings"
     Title="Hypen Vault"
@@ -24,7 +25,15 @@
                 Route="MainPage" />
         </Tab>
 
-        <!-- Tab 2: Now Playing -->
+        <!-- Tab 2: Library Fusion Vault -->
+        <Tab Title="Fusion" Icon="appicon.png">
+            <ShellContent 
+                Title="Library Fusion"
+                ContentTemplate="{DataTemplate fusion:LibraryFusionPage}" 
+                Route="LibraryFusionPage" />
+        </Tab>
+
+        <!-- Tab 3: Now Playing -->
         <Tab Title="Now Playing" Icon="appicon.png">
             <ShellContent 
                 Title="Now Playing"
@@ -32,7 +41,7 @@
                 Route="NowPlayingTab" />
         </Tab>
 
-        <!-- Tab 3: Settings & Auto-Update Control -->
+        <!-- Tab 4: Settings & Auto-Update Control -->
         <Tab Title="Settings" Icon="appicon.png">
             <ShellContent 
                 Title="Settings"
