@@ -177,7 +177,7 @@ jobs:
         run: |
           mkdir -p release-assets
           
-          # Percabangan Pencarian APK
+          # Percabangan Pencarian File APK
           SIGNED_APK=$(find bin/Release/net10.0-android* -type f -name "*-Signed.apk" 2>/dev/null | head -n 1)
           UNSIGNED_APK=$(find bin/Release/net10.0-android* -type f -name "*.apk" 2>/dev/null | head -n 1)
 
@@ -206,7 +206,15 @@ jobs:
             exit 1
           fi
 
-      # 6. Prepare Release Metadata & Notes
+      # 6. Upload Build Artifact (Agar muncul di halaman log Actions Run)
+      - name: Upload APK to Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HypenVault-APK-${{ steps.versioning.outputs.tag_name }}
+          path: release-assets/*.apk
+          retention-days: 7
+
+      # 7. Prepare Release Metadata & Notes
       - name: Generate Release Notes & Metadata
         id: release_info
         run: |
@@ -224,7 +232,7 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-      # 7. Publish Official Release
+      # 8. Publish Official GitHub Release
       - name: Create Official GitHub Release
         uses: softprops/action-gh-release@v2
         with:
