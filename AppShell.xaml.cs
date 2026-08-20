@@ -1,11 +1,3 @@
-using HypenMaui.Pages.Home;
-using HypenMaui.Pages.Library;
-using HypenMaui.Pages.LibraryFusion;
-using HypenMaui.Pages.Metadata;
-using HypenMaui.Pages.NowPlaying;
-using HypenMaui.Pages.Settings;
-using Microsoft.Maui.Controls;
-
 namespace HypenMaui;
 
 public partial class AppShell : Shell
@@ -14,12 +6,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Registrasi Route Navigasi
-        Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
-        Routing.RegisterRoute(nameof(LibraryPage), typeof(LibraryPage));
-        Routing.RegisterRoute(nameof(LibraryFusionPage), typeof(LibraryFusionPage));
-        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
-        Routing.RegisterRoute(nameof(NowPlayingPage), typeof(NowPlayingPage));
-        Routing.RegisterRoute(nameof(EditMetadataPage), typeof(EditMetadataPage));
+        // Registrasi route dipindahkan ke Navigation/BottomTabBar.xaml.cs
+        // agar bottom bar dan daftar halaman berada dalam satu file khusus.
     }
 }
