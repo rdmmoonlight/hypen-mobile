@@ -7,9 +7,9 @@ namespace HypenMaui.Pages.LibraryFusion;
 public partial class LibraryFusionPage : ContentPage
 {
     private readonly ISongService _songService;
-    private List<CloudSongModel> _songs = [];
+    private List<SongModel> _songs = [];
     
-    public ObservableCollection<CloudSongModel> FilteredSongs { get; set; } = [];
+    public ObservableCollection<SongModel> FilteredSongs { get; set; } = [];
 
     private string _searchQuery = "";
     private bool _isLoading;
@@ -28,7 +28,7 @@ public partial class LibraryFusionPage : ContentPage
         await LoadLibraryAsync();
     }
 
-    private static bool IsLocked(CloudSongModel song) =>
+    private static bool IsLocked(SongModel song) =>
         !string.IsNullOrWhiteSpace(song.YoutubeVideoId) &&
         !song.YoutubeVideoId.StartsWith("LOCAL", StringComparison.OrdinalIgnoreCase);
 
@@ -64,8 +64,8 @@ public partial class LibraryFusionPage : ContentPage
         var result = string.IsNullOrWhiteSpace(query)
             ? _songs
             : _songs.Where(song =>
-                song.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                song.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                (song.Title != null && song.Title.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (song.Artist != null && song.Artist.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
                 (song.Album != null && song.Album.Contains(query, StringComparison.OrdinalIgnoreCase)));
 
         foreach (var song in result)
@@ -118,7 +118,7 @@ public partial class LibraryFusionPage : ContentPage
 
     private async void OnDownloadSingleClicked(object? sender, EventArgs e)
     {
-        if (_isLoading || sender is not Button { CommandParameter: CloudSongModel song }) return;
+        if (_isLoading || sender is not Button { CommandParameter: SongModel song }) return;
 
         try
         {
@@ -177,7 +177,7 @@ public partial class LibraryFusionPage : ContentPage
 
     private async void OnDeleteSingleClicked(object? sender, EventArgs e)
     {
-        if (_isLoading || sender is not Button { CommandParameter: CloudSongModel song }) return;
+        if (_isLoading || sender is not Button { CommandParameter: SongModel song }) return;
 
         if (IsLocked(song))
         {
@@ -185,7 +185,7 @@ public partial class LibraryFusionPage : ContentPage
             return;
         }
 
-        bool confirmed = await DisplayAlertAsync("Konfirmasi", "Yakin ingin menghapus lagu ini dari vault?", "Ya", "Batal");
+        bool confirmed = await DisplayAlert("Konfirmasi", "Yakin ingin menghapus lagu ini dari vault?", "Ya", "Batal");
         if (!confirmed) return;
 
         if (await _songService.DeleteSongAsync(song.Id))
@@ -205,7 +205,7 @@ public partial class LibraryFusionPage : ContentPage
             return;
         }
 
-        bool confirmed = await DisplayAlertAsync("Konfirmasi", $"Yakin ingin menghapus {selectedIds.Length} lagu?", "Ya", "Batal");
+        bool confirmed = await DisplayAlert("Konfirmasi", $"Yakin ingin menghapus {selectedIds.Length} lagu?", "Ya", "Batal");
         if (!confirmed) return;
 
         if (await _songService.DeleteBatchSongsAsync(selectedIds))
