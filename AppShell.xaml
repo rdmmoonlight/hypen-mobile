@@ -3,9 +3,7 @@
     x:Class="HypenMaui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:home="clr-namespace:HypenMaui.Pages.Home"
-    xmlns:nowplaying="clr-namespace:HypenMaui.Pages.NowPlaying"
-    xmlns:settings="clr-namespace:HypenMaui.Pages.Settings"
+    xmlns:nav="clr-namespace:HypenMaui.Navigation"
     Title="Hypen Vault"
     Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False"
@@ -15,30 +13,7 @@
     Shell.TabBarTitleColor="#8A5CF5">
 
     <!-- BOTTOM BAR NAVIGATION FOR HYPEN VAULT -->
-    <TabBar>
-        <!-- Tab 1: Library & Music Player -->
-        <Tab Title="Library" Icon="appicon.png">
-            <ShellContent 
-                Title="Library"
-                ContentTemplate="{DataTemplate home:MainPage}" 
-                Route="MainPage" />
-        </Tab>
-
-        <!-- Tab 2: Now Playing -->
-        <Tab Title="Now Playing" Icon="appicon.png">
-            <ShellContent 
-                Title="Now Playing"
-                ContentTemplate="{DataTemplate nowplaying:NowPlayingPage}" 
-                Route="NowPlayingTab" />
-        </Tab>
-
-        <!-- Tab 3: Settings & Auto-Update Control -->
-        <Tab Title="Settings" Icon="appicon.png">
-            <ShellContent 
-                Title="Settings"
-                ContentTemplate="{DataTemplate settings:SettingsPage}" 
-                Route="SettingsPage" />
-        </Tab>
-    </TabBar>
+    <!-- Definisi tab dipindahkan ke Navigation/BottomTabBar.xaml -->
+    <nav:BottomTabBar />
 
 </Shell>
