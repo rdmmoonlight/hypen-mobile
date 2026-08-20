@@ -6,12 +6,6 @@
              Title="Library Fusion Vault"
              BackgroundColor="#121212">
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Converter x:Key="InverseBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *" Padding="16" RowSpacing="12">
         
         <!-- Search Input -->
@@ -65,7 +59,7 @@
                     Clicked="OnDeleteSelectedClicked" />
         </Grid>
 
-        <!-- Replacement for Separator -->
+        <!-- Garis Pemisah MAUI Standard -->
         <BoxView Grid.Row="3" HeightRequest="1" Color="#333333" HorizontalOptions="Fill" />
 
         <!-- Songs CollectionView -->
@@ -73,7 +67,7 @@
             <CollectionView x:Name="SongsCollectionView"
                             SelectionMode="None">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:CloudSongModel">
+                    <DataTemplate x:DataType="models:SongModel">
                         <Grid ColumnDefinitions="Auto, *, Auto, Auto"
                               Padding="8,12"
                               ColumnSpacing="12">
@@ -81,7 +75,6 @@
                             <!-- Checkbox Select Item -->
                             <CheckBox Grid.Column="0"
                                       IsChecked="{Binding IsSelected}"
-                                      IsEnabled="{Binding IsLocked, Converter={StaticResource InverseBoolConverter}}"
                                       CheckedChanged="OnSongCheckedChanged"
                                       VerticalOptions="Center" />
 
@@ -93,11 +86,6 @@
                                            FontAttributes="Bold"
                                            FontSize="15"
                                            LineBreakMode="TailTruncation" />
-                                    <!-- Lock Icon / Indicator -->
-                                    <Label Text="🔒"
-                                           FontSize="12"
-                                           IsVisible="{Binding IsLocked}"
-                                           VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                                 <Label Text="{Binding Artist}"
                                        TextColor="Gray"
